@@ -118,6 +118,7 @@ def simulate(A: int, S: int, D: int, test: Scenario) -> (list, Scenario):
         for q in range(len(test.queues)):
             stats['size'][q].append(len(test.queues[q]))
 
+
         for s in range(len(test.stations)):
             if test.stations[s] > 0:
                 stats['busy'][s].append(1)
