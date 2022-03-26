@@ -87,7 +87,7 @@ class RandomQueue(Scenario):
         self.queues = [[] for i in range(5)]
 
     def add_job(self, job_time):
-        s_idx = random.randint(0, len(self.queues))
+        s_idx = random.randrange(0, len(self.queues))
         self.queues[s_idx].insert(0, job_time)
 
     def get_job(self, station_num) -> int:
@@ -119,7 +119,7 @@ def simulate(A: int, S: int, D: int, test: Scenario) -> (list, Scenario):
             stats['size'][q].append(len(test.queues[q]))
 
         for s in range(len(test.stations)):
-            if test.stations[s]:
+            if test.stations[s] > 0:
                 stats['busy'][s].append(1)
 
     items_in_system = 0
@@ -171,7 +171,7 @@ if __name__ == "__main__":
 
     # shortest queue
     short = ShortestQueue()
-    stats, _ = simulate(A, S, D, rr)
+    stats, _ = simulate(A, S, D, short)
     sim_stats['short'] = stats
     for q in range(len(sim_stats['short']['size'])):
         ts = plt.plot(sim_stats['short']['size'][q], label='Queue %d' % q)
@@ -182,8 +182,8 @@ if __name__ == "__main__":
     plt.show()
 
     # random queue
-    short = RandomQueue()
-    stats, _ = simulate(A, S, D, rr)
+    rand = RandomQueue()
+    stats, _ = simulate(A, S, D, rand)
     sim_stats['rand'] = stats
     for q in range(len(sim_stats['rand']['size'])):
         ts = plt.plot(sim_stats['rand']['size'][q], label='Queue %d' % q)
