@@ -1,6 +1,5 @@
 # Interface
 import random
-import time
 
 import matplotlib.pyplot as plt
 
@@ -81,11 +80,28 @@ class ShortestQueue(Scenario):
         return 0
 
 
+class RandomQueue(Scenario):
+
+    def __init__(self):
+        super().__init__()
+        self.queues = [[] for i in range(5)]
+
+    def add_job(self, job_time):
+        s_idx = random.randrange(0, len(self.queues))
+        self.queues[s_idx].insert(0, job_time)
+
+    def get_job(self, station_num) -> int:
+        if len(self.queues[station_num]):
+            return self.queues[station_num].pop()
+        return 0
+
+
 def simulate(A: int, S: int, D: int, test: Scenario) -> (list, Scenario):
     stats = {
         'size': [[] for i in range(len(test.queues))],
         'tick_count': 0,
-        'busy': [[] for i in range(len(test.stations))]
+        'busy': [[] for i in range(len(test.stations))],
+        'avg_wait': None
     }
 
     while D or not test.is_empty():
@@ -102,17 +118,27 @@ def simulate(A: int, S: int, D: int, test: Scenario) -> (list, Scenario):
         for q in range(len(test.queues)):
             stats['size'][q].append(len(test.queues[q]))
 
+
         for s in range(len(test.stations)):
-            if test.stations[s]:
+            if test.stations[s] > 0:
                 stats['busy'][s].append(1)
+
+    items_in_system = 0
+    for x in range(len(stats['size'])):
+        items = 0
+        for y in range(len(stats['size'][x])):
+            items += stats['size'][x][y]
+        items_in_system += items
+
+    stats['avg_wait'] = items_in_system / stats['tick_count'] / A
 
     return stats, test
 
 
 if __name__ == "__main__":
-    A = 20
-    S = 10 * A  # S >> 5*A
-    D = 100000  # number of iterations, minutes
+    A = 4
+    S = 8 * A  # S >> 5*A
+    D = 10000  # number of iterations, minutes
 
     sim_stats = {
         'single': {},
@@ -125,7 +151,8 @@ if __name__ == "__main__":
     stats, _ = simulate(A, S, D, single)
     sim_stats['single'] = stats
     for q in range(len(sim_stats['single']['size'])):
-        ts = plt.plot(sim_stats['single']['size'][q], label='s_%d' % q)
+        ts = plt.plot(sim_stats['single']['size'][q], label='Queue %d' % q)
+    print(stats['avg_wait'])
 
     # show plot
     plt.legend()
@@ -136,7 +163,8 @@ if __name__ == "__main__":
     stats, _ = simulate(A, S, D, rr)
     sim_stats['rr'] = stats
     for q in range(len(sim_stats['rr']['size'])):
-        ts = plt.plot(sim_stats['rr']['size'][q], label='rr_%d' % q)
+        ts = plt.plot(sim_stats['rr']['size'][q], label='Queue %d' % q)
+    print(stats['avg_wait'])
 
     # show plot
     plt.legend()
@@ -144,10 +172,23 @@ if __name__ == "__main__":
 
     # shortest queue
     short = ShortestQueue()
-    stats, _ = simulate(A, S, D, rr)
+    stats, _ = simulate(A, S, D, short)
     sim_stats['short'] = stats
     for q in range(len(sim_stats['short']['size'])):
-        ts = plt.plot(sim_stats['short']['size'][q], label='short_%d' % q)
+        ts = plt.plot(sim_stats['short']['size'][q], label='Queue %d' % q)
+    print(stats['avg_wait'])
+
+    # show plot
+    plt.legend()
+    plt.show()
+
+    # random queue
+    rand = RandomQueue()
+    stats, _ = simulate(A, S, D, rand)
+    sim_stats['rand'] = stats
+    for q in range(len(sim_stats['rand']['size'])):
+        ts = plt.plot(sim_stats['rand']['size'][q], label='Queue %d' % q)
+    print(stats['avg_wait'])
 
     # show plot
     plt.legend()
